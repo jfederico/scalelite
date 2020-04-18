@@ -24,5 +24,11 @@ spec
 test
 systemd
 
+# docker-compose
+docker-compose.yml
+docker-compose-init.yml
+dotenv
+init-letsencrypt.sh
+
 # Deployment files
 bigbluebutton

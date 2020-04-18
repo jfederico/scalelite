@@ -21,6 +21,10 @@
 
 # Local dotenv
 .env*.local
+.env
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+# docker-compose
+/data*

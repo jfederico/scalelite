@@ -1,0 +1,106 @@
+version: '3'
+
+volumes:
+  postgres-data:
+  redis-data:
+
+services:
+  postgres:
+    image: postgres:11.5-alpine
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+
+  redis:
+    image: redis:5.0-alpine
+    container_name: redis
+    restart: on-failure
+    ports:
+      - 127.0.0.1:6379:6379
+    volumes:
+      - redis-data:/data
+
+  scalelite-nginx:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-nginx
+    container_name: scalelite-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./log/nginx/:/var/log/nginx
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+      - ${SCALELITE_RECORDING_DIR}/published:/var/bigbluebutton/published
+    environment:
+      - NGINX_SSL=${NGINX_SSL}
+      - SCALELITE_NGINX_EXTRA_OPTS=${SCALELITE_NGINX_EXTRA_OPTS}
+      - URL_HOST=${URL_HOST}
+    depends_on:
+      - scalelite-api
+
+  scalelite-api:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-api
+    container_name: scalelite-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./log/scalelite/:/app/log
+      - ${SCALELITE_RECORDING_DIR}:/var/bigbluebutton
+    environment:
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - LOADBALANCER_SECRET=${LOADBALANCER_SECRET}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@postgres:5432/scalelite?pool=5}
+      - URL_HOST=${URL_HOST}
+    depends_on:
+      - postgres
+      - redis
+
+  scalelite-poller:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-poller
+    container_name: scalelite-poller
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    depends_on:
+      - postgres
+      - redis
+      - scalelite-api
+
+  scalelite-poller:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-poller
+    container_name: scalelite-poller
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    depends_on:
+      - postgres
+      - redis
+      - scalelite-api
+
+  scalelite-recording-importer:
+    image: ${SCALELITE_REPO:-blindsidenetwks}/scalelite:${SCALELITE_TAG:-v1}-recording-importer
+    container_name: scalelite-recording-importer
+    restart: unless-stopped
+    volumes:
+      - ${SCALELITE_RECORDING_DIR}:/var/bigbluebutton
+    depends_on:
+      - scalelite-api
+      - postgres
+      - redis
+
+## Configuration for LetsEncrypt SSL Certificate
+#  certbot:
+#    image: certbot/certbot
+#    volumes:
+#      - ./data/certbot/conf/:/etc/letsencrypt
+#      - ./data/certbot/www/:/var/www/certbot
+#    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
