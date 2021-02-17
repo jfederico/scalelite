@@ -2,5 +2,5 @@
 
 desc('livenessProbe')
 task liveness: :environment do
-  puts "success"
+  puts 'success'
 end
