@@ -6,7 +6,7 @@ module ApiHelper
   extend ActiveSupport::Concern
   include BBBErrors
 
-  REQUEST_TIMEOUT = 10
+  DEFAULT_REQUEST_TIMEOUT = 5
   CHECKSUM_LENGTH = 40
 
   # Verify checksum
@@ -39,7 +39,7 @@ module ApiHelper
   end
 
   # GET/POST request
-  def get_post_req(uri, body = '')
+  def get_post_req(uri, body = '', **options)
     # If body is passed and has a value, setup POST request
     if body.present?
       req = Net::HTTP::Post.new(uri.request_uri)
@@ -49,8 +49,13 @@ module ApiHelper
       req = Net::HTTP::Get.new(uri.request_uri)
     end
 
-    Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https',
-                                        open_timeout: REQUEST_TIMEOUT, read_timeout: REQUEST_TIMEOUT) do |http|
+    Net::HTTP.start(
+      uri.host,
+      uri.port,
+      use_ssl: uri.scheme == 'https',
+      open_timeout: options.fetch(:open_timeout) { Rails.configuration.x.open_timeout },
+      read_timeout: options.fetch(:read_timeout) { Rails.configuration.x.read_timeout }
+    ) do |http|
       res = http.request(req)
       doc = Nokogiri::XML(res.body)
       returncode = doc.at_xpath('/response/returncode')
