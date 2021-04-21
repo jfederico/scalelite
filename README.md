@@ -272,6 +272,19 @@ Disable a server and clear all meeting state.
 This method is used to recover from a crashed BigBlueButton server.
 After the meeting state is cleared, anyone who tries to join a meeting that was previously on this server will instead be directed to a new meeting on a different server.
 
+### Cordon a server
+
+```sh
+./bin/rake servers:cordon[id]
+```
+
+Mark the server as cordoned.
+When a server is cordoned, no new meetings will be started on the server.
+Any existing meetings will continue to run until they finish.
+The Poll process continues to run on cordoned servers to update the "Online" status and detect ended meetings.
+The get_meetings API would also return all the active meetings in the cordoned server.
+This is useful to "drain" a server for updates without disrupting any ongoing meetings.
+
 ### Edit the load-multiplier of a server
 
 ```sh

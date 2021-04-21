@@ -105,7 +105,11 @@ class BigBlueButtonApiController < ApplicationController
 
     # Make individual getMeetings call for each server and append result to all_meetings
     servers.each do |server|
-      next unless server.online && server.enabled # only send getMeetings requests to servers that are online and enabled
+      active_states = %w[enabled cordoned]
+      # only send getMeetings requests to servers that have state as enabled/cordoned
+      next if server.offline? || server.state.present? && active_states.exclude?(server.state)
+      # only send getMeetings requests to servers that are enabled & have state as nil
+      next if server.disabled? && server.state.nil?
 
       uri = encode_bbb_uri('getMeetings', server.url, server.secret)
 

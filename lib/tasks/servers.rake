@@ -47,7 +47,18 @@ namespace :servers do
   desc 'Mark a BigBlueButton server as available for scheduling new meetings'
   task :enable, [:id] => :environment do |_t, args|
     server = Server.find(args.id)
-    server.enabled = true
+    server.state = 'enabled'
+    server.save!
+    puts('OK')
+  rescue ApplicationRedisRecord::RecordNotFound
+    puts("ERROR: No server found with id: #{args.id}")
+  end
+
+  desc 'Mark a BigBlueButton server as cordoned to stop scheduling new meetings but consider for
+        load calculation and joining existing meetings'
+  task :cordon, [:id] => :environment do |_t, args|
+    server = Server.find(args.id)
+    server.state = 'cordoned'
     server.save!
     puts('OK')
   rescue ApplicationRedisRecord::RecordNotFound
@@ -57,7 +68,7 @@ namespace :servers do
   desc 'Mark a BigBlueButton server as unavailable to stop scheduling new meetings'
   task :disable, [:id] => :environment do |_t, args|
     server = Server.find(args.id)
-    server.enabled = false
+    server.state = 'disabled'
     server.save!
     puts('OK')
   rescue ApplicationRedisRecord::RecordNotFound
@@ -70,7 +81,7 @@ namespace :servers do
     include ApiHelper
 
     server = Server.find(args.id)
-    server.enabled = false unless args.keep_state
+    server.state = 'disabled' unless args.keep_state
     server.save!
 
     meetings = Meeting.all.select { |m| m.server_id == server.id }
