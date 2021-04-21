@@ -54,6 +54,27 @@ namespace :servers do
     puts("ERROR: No server found with id: #{args.id}")
   end
 
+  desc 'Mark a BigBlueButton server as cordoned to stop scheduling new meetings but consider for
+        load calculation and joining existing meetings'
+  task :cordon, [:id] => :environment do |_t, args|
+    server = Server.find(args.id)
+    server.cordoned = true
+    server.save!
+    puts('OK')
+  rescue ApplicationRedisRecord::RecordNotFound
+    puts("ERROR: No server found with id: #{args.id}")
+  end
+
+  desc 'Mark a BigBlueButton server as uncordoned for scheduling new meetings'
+  task :uncordon, [:id] => :environment do |_t, args|
+    server = Server.find(args.id)
+    server.cordoned = false
+    server.save!
+    puts('OK')
+  rescue ApplicationRedisRecord::RecordNotFound
+    puts("ERROR: No server found with id: #{args.id}")
+  end
+
   desc 'Mark a BigBlueButton server as unavailable to stop scheduling new meetings'
   task :disable, [:id] => :environment do |_t, args|
     server = Server.find(args.id)

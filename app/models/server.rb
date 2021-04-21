@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class Server < ApplicationRedisRecord
-  define_attribute_methods :id, :url, :secret, :enabled, :load, :online, :load_multiplier, :healthy_counter, :unhealthy_counter
+  define_attribute_methods :id, :url, :secret, :enabled, :load, :online, :load_multiplier, :healthy_counter,
+                           :unhealthy_counter, :cordoned
 
   # Unique ID for this server
   application_redis_attr :id
@@ -29,6 +30,9 @@ class Server < ApplicationRedisRecord
 
   # Special load multiplier for this server to enable server-weight
   application_redis_attr :load_multiplier
+
+  # Indicator of whether the server is administratively cordoned (allowed to create new meetings)
+  application_redis_attr :cordoned
 
   def online=(value)
     value = !!value
@@ -59,6 +63,10 @@ class Server < ApplicationRedisRecord
         clear_attribute_changes([:load])
       end
 
+      if cordoned_changed?
+        self.load = redis.zscore('cordoned_server_load', id) unless cordoned
+      end
+
       redis.watch('servers') do
         exists = redis.sismember('servers', id)
         raise RecordNotSaved.new("Server already exists with id '#{id}'", self) if id_changed? && exists
@@ -70,6 +78,7 @@ class Server < ApplicationRedisRecord
           redis.hset(server_key, 'secret', secret) if secret_changed?
           redis.hset(server_key, 'online', online ? 'true' : 'false') if online_changed?
           redis.hset(server_key, 'load_multiplier', load_multiplier) if load_multiplier_changed?
+          redis.hset(server_key, 'cordoned', cordoned ? 'true' : 'false') if cordoned_changed?
           redis.sadd('servers', id) if id_changed?
           if enabled_changed?
             if enabled
@@ -79,9 +88,22 @@ class Server < ApplicationRedisRecord
               redis.zrem('server_load', id)
             end
           end
+          if cordoned_changed?
+            if cordoned
+              redis.zrem('server_load', id)
+              redis.zadd('cordoned_server_load', self.load, id)
+            else
+              redis.zrem('cordoned_server_load', id)
+              redis.zadd('server_load', self.load, id)
+            end
+          end
           if load_changed?
-            if load.present?
-              redis.zadd('server_load', load, id)
+            if self.load.present?
+              if cordoned
+                redis.zadd('cordoned_server_load', self.load, id)
+              else
+                redis.zadd('server_load', self.load, id)
+              end
             else
               redis.zrem('server_load', id)
             end
@@ -170,10 +192,12 @@ class Server < ApplicationRedisRecord
       end
       raise RecordNotFound.new("Couldn't find Server with id=#{id}", name, id) if hash.blank?
 
+      load = redis.zscore('cordoned_server_load', id) if hash['cordoned']&.casecmp?('true')
       hash['id'] = id
       hash['enabled'] = enabled
       hash['load'] = load if enabled
       hash['online'] = (hash['online'] == 'true')
+      hash['cordoned'] = (hash['cordoned'] == 'true')
       new.init_with_attributes(hash)
     end
   end
@@ -195,6 +219,7 @@ class Server < ApplicationRedisRecord
       hash['enabled'] = true # all servers in server_load set are enabled
       hash['load'] = load
       hash['online'] = (hash['online'] == 'true')
+      hash['cordoned'] = (hash['cordoned'] == 'true')
       new.init_with_attributes(hash)
     end
   end
@@ -214,17 +239,19 @@ class Server < ApplicationRedisRecord
         end
         next if hash.blank?
 
+        load = redis.zscore('cordoned_server_load', id) if hash['cordoned']&.casecmp?('true')
         hash['id'] = id
         hash['enabled'] = enabled
         hash['load'] = load if enabled
         hash['online'] = (hash['online'] == 'true')
+        hash['cordoned'] = (hash['cordoned'] == 'true')
         servers << new.init_with_attributes(hash)
       end
     end
     servers
   end
 
-  # Get a list of all available servers (enabled and online)
+  # Get a list of all available servers (enabled, online and uncordoned)
   def self.available
     servers = []
     with_connection do |redis|
@@ -252,10 +279,12 @@ class Server < ApplicationRedisRecord
           redis.zscore('server_load', id)
         end
 
+        load = redis.zscore('cordoned_server_load', id) if hash['cordoned']&.casecmp?('true')
         hash['id'] = id
         hash['enabled'] = true
         hash['load'] = load
         hash['online'] = (hash['online'] == 'true')
+        hash['cordoned'] = (hash['cordoned'] == 'true')
         servers << new.init_with_attributes(hash)
       end
     end

@@ -114,6 +114,116 @@ class ServerTest < ActiveSupport::TestCase
     assert_equal(1, server.load)
   end
 
+  test 'Server find_available returns server with lowest load and is uncordoned' do
+    RedisStore.with_connection do |redis|
+      redis.mapped_hmset('server:test-1', url: 'https://test-1.example.com/bigbluebutton/api', secret: 'test-1-secret')
+      redis.sadd('servers', 'test-1')
+      redis.sadd('server_enabled', 'test-1')
+      redis.zadd('server_load', 1, 'test-1')
+      redis.mapped_hmset('server:test-2', url: 'https://test-2.example.com/bigbluebutton/api', secret: 'test-2-secret')
+      redis.sadd('servers', 'test-2')
+      redis.sadd('server_enabled', 'test-2')
+      redis.zadd('server_load', 1, 'test-2')
+    end
+
+    server1 = Server.find('test-1')
+    server1.cordoned = false
+    server1.save!
+
+    server2 = Server.find('test-2')
+    server2.cordoned = true
+    server2.save!
+
+    server = Server.find_available
+    assert_equal('test-1', server.id)
+    assert_equal('https://test-1.example.com/bigbluebutton/api', server.url)
+    assert_equal('test-1-secret', server.secret)
+    assert_equal(false, server.cordoned)
+    assert(server.enabled)
+    assert_equal(1, server.load)
+  end
+
+  test 'Server find_available raises no server error if all servers are cordoned' do
+    RedisStore.with_connection do |redis|
+      redis.mapped_hmset('server:test-1', url: 'https://test-1.example.com/bigbluebutton/api', secret: 'test-1-secret')
+      redis.sadd('servers', 'test-1')
+      redis.sadd('server_enabled', 'test-1')
+      redis.zadd('server_load', 1, 'test-1')
+      redis.mapped_hmset('server:test-2', url: 'https://test-2.example.com/bigbluebutton/api', secret: 'test-2-secret')
+      redis.sadd('servers', 'test-2')
+      redis.sadd('server_enabled', 'test-2')
+      redis.zadd('server_load', 1, 'test-2')
+    end
+
+    Server.all.each do |server|
+      server.cordoned = true
+      server.save!
+    end
+
+    assert_raises(ApplicationRedisRecord::RecordNotFound) do
+      Server.find_available
+    end
+  end
+
+  test 'Servers load are retained after being cordoned' do
+    RedisStore.with_connection do |redis|
+      redis.mapped_hmset('server:test-1', url: 'https://test-1.example.com/bigbluebutton/api', secret: 'test-1-secret')
+      redis.sadd('servers', 'test-1')
+      redis.sadd('server_enabled', 'test-1')
+      redis.zadd('server_load', 5, 'test-1')
+      redis.mapped_hmset('server:test-2', url: 'https://test-2.example.com/bigbluebutton/api', secret: 'test-2-secret')
+      redis.sadd('servers', 'test-2')
+      redis.sadd('server_enabled', 'test-2')
+      redis.zadd('server_load', 5, 'test-2')
+    end
+
+    Server.all.each do |server|
+      server.cordoned = true
+      server.save!
+    end
+
+    Server.all.each do |server|
+      assert(server.cordoned)
+      assert(server.enabled)
+      assert_equal(5, server.load)
+    end
+  end
+
+  test 'Servers load are retained after being uncordoned' do
+    RedisStore.with_connection do |redis|
+      redis.mapped_hmset('server:test-1', url: 'https://test-1.example.com/bigbluebutton/api', secret: 'test-1-secret')
+      redis.sadd('servers', 'test-1')
+      redis.sadd('server_enabled', 'test-1')
+      redis.zadd('server_load', 5, 'test-1')
+      redis.mapped_hmset('server:test-2', url: 'https://test-2.example.com/bigbluebutton/api', secret: 'test-2-secret')
+      redis.sadd('servers', 'test-2')
+      redis.sadd('server_enabled', 'test-2')
+      redis.zadd('server_load', 5, 'test-2')
+    end
+
+    Server.all.each do |server|
+      server.cordoned = true
+      server.save!
+    end
+
+    Server.all.each do |server|
+      assert(server.cordoned)
+      assert(server.enabled)
+      assert_equal(5, server.load)
+    end
+
+    Server.all.each do |server|
+      server.cordoned = false
+      server.save!
+    end
+
+    Server.all.each do |server|
+      assert_not(server.cordoned)
+      assert(server.enabled)
+      assert_equal(5, server.load)
+    end
+  end
+
   test 'Server all with no servers' do
     servers = Server.all
     assert_empty(servers)
@@ -140,11 +250,13 @@ class ServerTest < ActiveSupport::TestCase
         assert_equal('test-1-secret', server.secret)
         assert_not(server.enabled)
         assert_nil(server.load)
+        assert_not(server.cordoned)
       when 'test-2'
         assert_equal('https://test-2.example.com/bigbluebutton/api', server.url)
         assert_equal('test-2-secret', server.secret)
         assert(server.enabled)
         assert_equal(2, server.load)
+        assert_not(server.cordoned)
       else
         flunk("Returned unexpected server #{server.id}")
       end
@@ -171,6 +283,7 @@ class ServerTest < ActiveSupport::TestCase
     assert_equal('test-2-secret', server.secret)
     assert(server.enabled)
     assert_equal(2, server.load)
+    assert_not(server.cordoned)
   end
 
   test 'Server increment load' do
