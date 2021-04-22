@@ -79,6 +79,7 @@ ENV BUILD_NUMBER=${BUILD_NUMBER}
 FROM application AS recording-importer
 ENV RECORDING_IMPORT_POLL=true
 CMD [ "bin/start-recording-importer" ]
+CMD [ "bin/start-delayed-job" ]
 
 FROM application AS poller
 CMD [ "bin/start-poller" ]
