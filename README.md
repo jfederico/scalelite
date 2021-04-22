@@ -285,15 +285,6 @@ The Poll process continues to run on cordoned servers to update the "Online" sta
 The get_meetings API would also return all the active meetings in the cordoned server.
 This is useful to "drain" a server for updates without disrupting any ongoing meetings.
 
-### Uncordon a server
-
-```sh
-./bin/rake servers:uncordon[id]
-```
-
-Mark the server as uncordoned.
-The server will be used for starting new meetings.
-
 ### Edit the load-multiplier of a server
 
 ```sh

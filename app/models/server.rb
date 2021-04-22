@@ -63,10 +63,6 @@ class Server < ApplicationRedisRecord
         clear_attribute_changes([:load])
       end
 
-      if cordoned_changed?
-        self.load = redis.zscore('cordoned_server_load', id) unless cordoned
-      end
-
       redis.watch('servers') do
         exists = redis.sismember('servers', id)
         raise RecordNotSaved.new("Server already exists with id '#{id}'", self) if id_changed? && exists
@@ -92,9 +88,6 @@ class Server < ApplicationRedisRecord
             if cordoned
               redis.zrem('server_load', id)
               redis.zadd('cordoned_server_load', self.load, id)
-            else
-              redis.zrem('cordoned_server_load', id)
-              redis.zadd('server_load', self.load, id)
             end
           end
           if load_changed?
@@ -263,6 +256,7 @@ class Server < ApplicationRedisRecord
         hash['enabled'] = true # all servers in server_load set are enabled
         hash['load'] = load
         hash['online'] = (hash['online'] == 'true')
+        hash['cordoned'] = (hash['cordoned'] == 'true')
         servers << new.init_with_attributes(hash)
       end
     end
