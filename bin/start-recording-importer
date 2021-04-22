@@ -1,3 +1,4 @@
 #!/bin/sh
 
 exec tini -- bundle exec rake recordings:watch["${RECORDING_IMPORT_POLL:-true}","${RECORDING_IMPORT_POLL_INTERVAL:-60}"]
+exec tini -- bundle exec rake delayed_job:start

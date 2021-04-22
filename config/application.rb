@@ -5,7 +5,7 @@ require_relative 'boot'
 require 'rails'
 # Pick the frameworks you want:
 require 'active_model/railtie' unless 'true'.casecmp?(ENV['DB_DISABLED'])
-# require 'active_job/railtie'
+require 'active_job/railtie'
 require 'active_record/railtie'
 # require 'active_storage/engine'
 require 'action_controller/railtie'
@@ -37,6 +37,8 @@ module Scalelite
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    config.active_job.queue_adapter = :delayed_job
 
     # Read the file config/redis_store.yml as per-environment configuration with erb
     config.x.redis_store = config_for(:redis_store)
