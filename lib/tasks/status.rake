@@ -41,7 +41,13 @@ task status: :environment do
     # Convert to openstruct to allow dot syntax usage
     servers_info.push(OpenStruct.new(
                         hostname: URI.parse(server.url).host,
-                        state: server.enabled ? 'enabled' : server.cordoned ? 'cordoned' : 'offline',
+                        state: if server.enabled
+                                 'enabled'
+                               elsif server.cordoned
+                                 'cordoned'
+                               else
+                                 'offline'
+                               end,
                         status: server.online ? 'online' : 'offline',
                         meetings: meetings.length,
                         users: server_users,
