@@ -41,9 +41,8 @@ task status: :environment do
     # Convert to openstruct to allow dot syntax usage
     servers_info.push(OpenStruct.new(
                         hostname: URI.parse(server.url).host,
-                        state: server.enabled ? 'enabled' : 'disabled',
+                        state: server.enabled ? 'enabled' : server.cordoned ? 'cordoned' : 'offline',
                         status: server.online ? 'online' : 'offline',
-                        cordoned: server.cordoned,
                         meetings: meetings.length,
                         users: server_users,
                         largest: users_in_largest_meeting,
@@ -58,7 +57,6 @@ task status: :environment do
     t.add_column('HOSTNAME', &:hostname)
     t.add_column('STATE', &:state)
     t.add_column('STATUS', &:status)
-    t.add_column('CORDONED', &:cordoned)
     t.add_column('MEETINGS', &:meetings)
     t.add_column('USERS', &:users)
     t.add_column('LARGEST MEETING', &:largest)
