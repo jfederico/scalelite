@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class RecordingReadyNotifierJobTest < ActiveJob::TestCase
+class RecordingReadyNotifierServiceTest < ActiveSupport::TestCase
   require 'test_helper'
 
   test 'returns true if recording ready notification succeeds' do
@@ -12,7 +12,7 @@ class RecordingReadyNotifierJobTest < ActiveJob::TestCase
       .to_return(status: 200, body: '', headers: {})
 
     return_val = JWT.stub(:encode, 'eyJhbGciOiJIUzI1NiJ9.eyJtZWV0aW5nX2lkIjoibWVldGluZzE5In0.Jlw1ND63QJ3j9TT0mgp_5fpmPA82FhMT_-mPU25PEFY') do # rubocop:disable LineLength
-      RecordingReadyNotifierJob.new.perform(recording.id)
+      RecordingReadyNotifierService.execute(recording.id)
     end
 
     assert_equal return_val, true
@@ -27,7 +27,7 @@ class RecordingReadyNotifierJobTest < ActiveJob::TestCase
     stub_request(:post, url).to_timeout
 
     return_val = JWT.stub(:encode, 'eyJhbGciOiJIUzI1NiJ9.eyJtZWV0aW5nX2lkIjoibWVldGluZzE5In0.Jlw1ND63QJ3j9TT0mgp_5fpmPA82FhMT_-mPU25PEFY') do # rubocop:disable LineLength
-      RecordingReadyNotifierJob.new.perform(recording.id)
+      RecordingReadyNotifierService.execute(recording.id)
     end
 
     assert_equal return_val, false
