@@ -8,6 +8,7 @@ if ! sudo -n -u bigbluebutton true; then
     exit 1
 fi
 
+
 prev_record_id=
 for done_file in "$status_dir"/*.done; do
     record_id="${done_file##*/}"
