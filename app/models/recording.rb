@@ -114,4 +114,8 @@ class Recording < ApplicationRecord
       retry
     end
   end
+
+  def protected?
+    return self.protected == true
+  end
 end

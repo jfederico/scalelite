@@ -108,5 +108,7 @@ module Scalelite
 
     # Scalelite Host name
     config.x.url_host = ENV['URL_HOST']
+
+    config.x.recording_cookie_ttl = ENV.fetch('RECORDING_COOKIE_TTL', 240).to_i.minutes
   end
 end

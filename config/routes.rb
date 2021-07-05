@@ -29,8 +29,14 @@ Rails.application.routes.draw do
     end
   end
 
-  get 'health_check', to: 'health_check#all'
+  get('health_check', to: 'health_check#index')
+
+  get('playback/:playback_format/:player_version/:record_id', to: 'playback#index', format: false, as: :playback, constraints: { player_version: /[^\/]+/ })
+  get('presentation', to: 'playback#playback_format', format: false, as: :presentation_format)
+  get('video', to: 'playback#playback_format', format: false, as: :video_format)
+  get('podcast', to: 'playback#playback_format', format: false, as: :podcast_format)
+  get('notes', to: 'playback#playback_format', format: false, as: :notes_format)
 
   match '*any', via: :all, to: 'errors#unsupported_request'
-  root to: 'health_check#all', via: :all
+  root to: 'health_check#index', via: :all
 end
