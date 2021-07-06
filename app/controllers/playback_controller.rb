@@ -7,7 +7,6 @@ class PlaybackController < ApplicationController
 
     # Lookup for recording
     recording = Recording.find_by!(record_id: playback_params[:record_id])
-    logger.info recording.inspect
 
     cookie_name = "recording_#{recording.record_id}"
     expires = Time.now.utc + Rails.configuration.x.recording_cookie_ttl
@@ -22,8 +21,8 @@ class PlaybackController < ApplicationController
 
   end
 
-  def playback_format
-    deliver_resource(request.host_with_port, request.method, expires)
+  def resource
+    deliver_resource(request.host_with_port, request.method)
     return
   end
 
@@ -34,18 +33,10 @@ class PlaybackController < ApplicationController
   end
 
   def deliver_resource(host, method = 'GET', expires = nil)
-    expires ||= Time.now.utc + Rails.configuration.recording_cookie_ttl
-
-    resource_path = "#{playback_params[:playback_format]}/#{playback_params[:player_version]}/#{playback_params[:record_id]}"
-    logger.info ">>>>>>>>>>>>>>>>>>>> #{resource_path}"
+    expires ||= Time.now.utc + Rails.configuration.x.recording_cookie_ttl
 
     resource_path = request.path
-    logger.info ">>>>>>>>>>>>>>>>>>>> #{resource_path}"
-
-
     static_resource_path = "static-resource#{resource_path}"
-
-    logger.info ">>>>>>>>>>>>>>>>>>>> #{static_resource_path}"
 
     response.headers['X-Accel-Redirect'] =
       "/#{static_resource_path}"

@@ -32,10 +32,15 @@ Rails.application.routes.draw do
   get('health_check', to: 'health_check#index')
 
   get('playback/:playback_format/:player_version/:record_id', to: 'playback#index', format: false, as: :playback, constraints: { player_version: /[^\/]+/ })
-  get('presentation', to: 'playback#playback_format', format: false, as: :presentation_format)
-  get('video', to: 'playback#playback_format', format: false, as: :video_format)
-  get('podcast', to: 'playback#playback_format', format: false, as: :podcast_format)
-  get('notes', to: 'playback#playback_format', format: false, as: :notes_format)
+  get('playback/:playback_format/:player_version(/*resource)', to: 'playback#resource', format: false, as: :playback_player, constraints: { player_version: /[^\/]+/ })
+  get('presentation(/*playback_resource)', to: 'playback#resource', format: false)
+  get('video(/*playback_resource)', to: 'playback#resource', format: false)
+  get('podcast(/*playback_resource)', to: 'playback#resource', format: false)
+  get('notes(/*playback_resource)', to: 'playback#resource', format: false)
+
+  # Rails.configuration.x.recording_playback_formats.each do |playback_format|
+  #   get("#{playback_format}(/*playback_resource)", to: 'playback#resource', format: false)
+  # end
 
   match '*any', via: :all, to: 'errors#unsupported_request'
   root to: 'health_check#index', via: :all

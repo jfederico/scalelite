@@ -110,5 +110,7 @@ module Scalelite
     config.x.url_host = ENV['URL_HOST']
 
     config.x.recording_cookie_ttl = ENV.fetch('RECORDING_COOKIE_TTL', 240).to_i.minutes
+
+    config.x.recording_playback_formats.concat(ENV.fetch('RECORDING_PLAYBACK_FORMATS', 'presentation').split(':'))
   end
 end
