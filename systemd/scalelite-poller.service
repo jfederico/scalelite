@@ -6,11 +6,12 @@ Before=scalelite.target
 PartOf=scalelite.target
 After=scalelite-api.service
 [Service]
+Environment="SCALELITE_REPO=blindsidenetwks/scalelite"
 EnvironmentFile=/etc/default/scalelite
 ExecStartPre=-/usr/bin/docker kill scalelite-poller
 ExecStartPre=-/usr/bin/docker rm scalelite-poller
-ExecStartPre=/usr/bin/docker pull blindsidenetwks/scalelite:${SCALELITE_TAG}-poller
-ExecStart=/usr/bin/docker run --log-opt max-size=10m --log-opt max-file=5 --name scalelite-poller --env-file /etc/default/scalelite --network scalelite blindsidenetwks/scalelite:${SCALELITE_TAG}-poller
+ExecStartPre=/usr/bin/docker pull ${SCALELITE_REPO}:${SCALELITE_TAG}-poller
+ExecStart=/usr/bin/docker run --log-opt max-size=10m --log-opt max-file=5 --name scalelite-poller --env-file /etc/default/scalelite --network scalelite --restart unless-stopped ${SCALELITE_REPO}:${SCALELITE_TAG}-poller
 ExecStartPost=/usr/bin/docker image prune -f
 [Install]
 WantedBy=scalelite.target
