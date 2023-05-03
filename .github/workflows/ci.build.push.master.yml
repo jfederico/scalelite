@@ -86,7 +86,9 @@ jobs:
         with:
           push: true
           target: nginx
-          tags: "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-nginx"
+          tags: |
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-nginx"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine-nginx"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
@@ -99,6 +101,8 @@ jobs:
           tags: |
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-api"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine-api"
           build-args: "BUILD_NUMBER=${{ steps.ci_branch_name.outputs.branch }}-${{ steps.ci_commit_short_sha.outputs.short_sha }}"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
@@ -109,7 +113,9 @@ jobs:
         with:
           push: true
           target: poller
-          tags: "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-poller"
+          tags: |
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-poller"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine-poller"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
@@ -119,55 +125,9 @@ jobs:
         with:
           push: true
           target: recording-importer
-          tags: "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-recording-importer"
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      # Alternate Images for bbb-focal-260 with alpine
-      - name: Alternate Alpine Build and Push nginx
-        if: ${{ steps.preconditions.outputs.build && steps.preconditions.outputs.build_alternate }}
-        uses: docker/build-push-action@v3
-        with:
-          file: dockerfiles/v1/focal260-alpine
-          push: true
-          target: nginx
-          tags: "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine-nginx"
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Alternate Alpine Build and Push api
-        if: ${{ steps.preconditions.outputs.build && steps.preconditions.outputs.build_alternate }}
-        uses: docker/build-push-action@v3
-        with:
-          file: dockerfiles/v1/focal260-alpine
-          push: true
-          target: api
           tags: |
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine-api"
-          build-args: "BUILD_NUMBER=${{ steps.ci_branch_name.outputs.branch }}-${{ steps.ci_commit_short_sha.outputs.short_sha }}"
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Alternate Alpine Build and Push poller
-        if: ${{ steps.preconditions.outputs.build && steps.preconditions.outputs.build_alternate }}
-        uses: docker/build-push-action@v3
-        with:
-          file: dockerfiles/v1/focal260-alpine
-          push: true
-          target: poller
-          tags: "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine-poller"
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Alternate Alpine Build and Push recording-importer
-        if: ${{ steps.preconditions.outputs.build && steps.preconditions.outputs.build_alternate }}
-        uses: docker/build-push-action@v3
-        with:
-          file: dockerfiles/v1/focal260-alpine
-          push: true
-          target: recording-importer
-          tags: "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine-recording-importer"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-recording-importer"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-alpine-recording-importer"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 

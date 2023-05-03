@@ -72,6 +72,9 @@ jobs:
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-nginx"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-nginx"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-nginx"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine-nginx"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine-nginx"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine-nginx"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
@@ -88,6 +91,12 @@ jobs:
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-api"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-api"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-api"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine-api"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine-api"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine-api"
           build-args: "BUILD_NUMBER=${{ steps.ci_tag_release_revision.outputs.tag }}"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
@@ -102,6 +111,9 @@ jobs:
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-poller"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-poller"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-poller"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine-poller"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine-poller"
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine-poller"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
@@ -115,64 +127,6 @@ jobs:
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-recording-importer"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-recording-importer"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-recording-importer"
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      # Alternate Images for bbb-focal-260 with alpine
-      - name: Alternate Alpine Build and Push nginx
-        if: contains(env.DOCKER_BUILD_ENABLED, 'true')
-        uses: docker/build-push-action@v3
-        with:
-          file: dockerfiles/v1/focal260-alpine
-          push: true
-          target: nginx
-          tags: |
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine-nginx"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine-nginx"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine-nginx"
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Alternate Alpine Build and Push api
-        if: contains(env.DOCKER_BUILD_ENABLED, 'true')
-        uses: docker/build-push-action@v3
-        with:
-          file: dockerfiles/v1/focal260-alpine
-          push: true
-          target: api
-          tags: |
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine-api"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine-api"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine-api"
-          build-args: "BUILD_NUMBER=${{ steps.ci_tag_release_revision.outputs.tag }}"
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Alternate Alpine Build and Push poller
-        if: contains(env.DOCKER_BUILD_ENABLED, 'true')
-        uses: docker/build-push-action@v3
-        with:
-          file: dockerfiles/v1/focal260-alpine
-          push: true
-          target: poller
-          tags: |
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine-poller"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine-poller"
-            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine-poller"
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Alternate Alpine Build and Push recording-importer
-        if: contains(env.DOCKER_BUILD_ENABLED, 'true')
-        uses: docker/build-push-action@v3
-        with:
-          file: dockerfiles/v1/focal260-alpine
-          push: true
-          target: recording-importer
-          tags: |
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_major.outputs.tag }}-focal260-alpine-recording-importer"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_minor.outputs.tag }}-focal260-alpine-recording-importer"
             "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_tag_release_revision.outputs.tag }}-focal260-alpine-recording-importer"
