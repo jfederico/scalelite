@@ -164,7 +164,8 @@ jobs:
           file: dockerfiles/v1/focal260-amazonlinux
           push: true
           target: poller
-          tags: "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-amazonlinux-poller"
+          tags: |
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-amazonlinux-poller"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
@@ -175,7 +176,8 @@ jobs:
           file: dockerfiles/v1/focal260-amazonlinux
           push: true
           target: recording-importer
-          tags: "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-amazonlinux-recording-importer"
+          tags: |
+            "${{ steps.ci_docker_repository.outputs.repository }}:${{ steps.ci_branch_name.outputs.branch }}-focal260-amazonlinux-recording-importer"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
