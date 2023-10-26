@@ -26,6 +26,9 @@ gem 'pg', '~> 1.4.4'
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', '>= 1.16.0', require: false
 
+# Use mqtt for a listener
+gem 'mqtt', '~> 0.6.0'
+
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
 # gem 'rack-cors'
 

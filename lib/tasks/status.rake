@@ -2,12 +2,12 @@
 
 require 'ostruct'
 
-desc('List all BigBlueButton servers and all meetings currently running')
-task status: :environment do
-  include ApiHelper
+servers_info = []
+ServerInfo = Struct.new(:hostname, :state, :status, :meetings, :users, :largest, :videos, :load)
 
-  servers_info = []
-  ServerInfo = Struct.new(:hostname, :state, :status, :meetings, :users, :largest, :videos, :load)
+desc('List all BigBlueButton servers and all meetings currently running')
+task :status => :environment do
+  include ApiHelper
 
   Server.all.each do |server|
     state = server.state
@@ -51,4 +51,24 @@ end
 
 def status_without_state(enabled)
   enabled ? 'enabled' : 'disabled'
+end
+
+namespace :status do
+  desc 'Watch the status'
+  task :watch, [:interval] => :environment do |_t, args|
+    args.with_defaults(interval: 15.seconds)
+    interval = args.interval.to_f
+
+    loop do
+      begin
+        puts 'I am watching...'
+      rescue Redis::CannotConnectError => e
+        Rails.logger.warn(e)
+      end
+
+      sleep(interval)
+    end
+  rescue SignalException => e
+    Rails.logger.info("Exiting status:watchr on signal: #{e}")
+  end
 end
