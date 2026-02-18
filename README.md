@@ -114,6 +114,16 @@ To confirm that you have the latest version, enter `http(s)://<scalelite-hostnam
 
 For the configuration options, see [configuration](docs/configuration-README.md#Configuration).
 
+## High Availability Deployments
+
+For deploying Scalelite in High Availability setups behind a proxy or load balancer, see [HA Deployment Guide](docs/ha-deployment-README.md).
+
+This guide includes:
+- Configuration for HA deployments with proxy/load balancer
+- Analytics callback URL setup
+- Best practices and troubleshooting
+- Examples for AWS ALB, Kubernetes, and multi-datacenter setups
+
 ## Management - Rake Tasks
 
 For the administrative rake tasks, see [rake tasks](docs/rake-README.md)
